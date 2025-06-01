@@ -1,46 +1,81 @@
-import { object, string } from "yup";
-import { Formik, Form, Field, ErrorMessage } from "formik";
+import { Formik, Form, Field } from "formik";
+import { useId } from "react";
+import * as Yup from "yup";
+import { ErrorMessage } from "formik";
+import { useDispatch } from "react-redux";
+
 import css from "./ContactForm.module.css";
+import { addContact } from "../../redux/contactsSlice";
 
-export default function ContactForm({ onAdd }) {
-  const validationSchema = object({
-  name: string().required("Name is required"),
-  number: string()
-    .matches(/^[0-9]*$/, "Invalid number")
-    .required("Number is required"),
-});
+// import { useSelector } from "react-redux"
+// import { getContacts } from "../../redux/selectors"
 
+export default function ContactForm() {
+  //  const items = useSelector(getContacts)
+  // console.log(items)
+  const nameId = useId();
+  const telId = useId();
+  const itemId = Math.random();
+  const dispatch = useDispatch();
+  const ContactSchema = Yup.object().shape({
+    name: Yup.string()
+      .matches(
+        /^[A-Z][a-zA-Z]*\s[A-Z][a-zA-Z]*$/,
+        'Name must contain only English letters: "Alex Copeland"'
+      )
+      .min(2, "1 letter? For real?")
+      .max(15, "Name is too long")
+      .required("Enter the name please"),
+    number: Yup.string()
+      .matches(/^\d{3}-\d{2}-\d{2}$/, 'Incorrect number: "222-22-22"')
+      .required("Enter the number please"),
+  });
 
-  const handleSubmit = (values, actions) => {
-    onAdd({
-      id: Date.now(),
-      name: values.name,
-      number: values.number,
-    });
+  function submitHandler(values, actions) {
+    values.id = itemId;
+    // console.log(values.number, values.name)
+    dispatch(addContact({ name: values.name, number: values.number }));
     actions.resetForm();
-  };
+  }
 
   return (
-    <>
-      <Formik
-        initialValues={{ name: "", number: "" }}
-        onSubmit={handleSubmit}
-        validationSchema={validationSchema}
-      >
-        <Form className={css.form}>
-          <div>
-            <label htmlFor="name">Name</label>
-            <Field type="text" name="name" className={css.input} />
-            <ErrorMessage name="name" component="div" />
-          </div>
-          <div>
-            <label htmlFor="number">Number</label>
-            <Field type="tel" name="number" className={css.input} />
-            <ErrorMessage name="number" component="div" />
-          </div>
-          <button type="submit">Add Contact</button>
-        </Form>
-      </Formik>
-    </>
+    <Formik
+      initialValues={{
+        name: "",
+        number: "",
+      }}
+      onSubmit={submitHandler}
+      validationSchema={ContactSchema}
+    >
+      <Form className={css.container}>
+        <label htmlFor={nameId}>Name</label>
+        <Field
+          className={css.input}
+          type="text"
+          name="name"
+          id={nameId}
+        ></Field>
+        <ErrorMessage
+          className={css.error}
+          name="name"
+          component="span"
+        ></ErrorMessage>
+        <label htmlFor={telId}>Number</label>
+        <Field
+          className={css.input}
+          type="tel"
+          name="number"
+          id={telId}
+        ></Field>
+        <ErrorMessage
+          className={css.error}
+          name="number"
+          component="span"
+        ></ErrorMessage>
+        <button className={css.btn} type="submit">
+          Add contact
+        </button>
+      </Form>
+    </Formik>
   );
 }
