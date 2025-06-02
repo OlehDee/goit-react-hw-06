@@ -26,7 +26,7 @@ export default function SearchBox() {
           name="name"
           id={SearchId}
           onChange={changeHandler}
-          value={value.name}
+          value={value}
         ></input>
       </form>
     </div>
